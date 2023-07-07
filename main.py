@@ -53,12 +53,14 @@ class UpgradeSpeed(Button):
         self.image = pygame.transform.scale(self.image, (131, 131))
 
     def upgrade_button(self):
-        if game_manager.coins_collected >= self.cost:
+        if game_manager.coins_collected >= self.cost and self.level != 10:
+            GameManager.decrease_cost_speed(game_manager)
             self.level += 1
             player.speed += 1
             self.cost += 5
-        # else
-        # play an error sound effect
+            upgrade_soundEffect.play()
+        else:
+            error_soundEffect.play()
 
 
 class UpgradeSize(Button):
@@ -68,12 +70,15 @@ class UpgradeSize(Button):
         self.cost = 5
         self.image = pygame.transform.scale(self.image, (131, 131))
 
-
     def upgrade_button(self):
-        if game_manager.coins_collected >= self.cost:
+        if game_manager.coins_collected >= self.cost and self.level != 10:
+            GameManager.decrease_cost_size(game_manager)
             self.level += 1
-            player.rect.size += 2
-            self.cost = 5
+            player.rect.size += (0, 2)
+            self.cost += 5
+            upgrade_soundEffect.play()
+        else:
+            error_soundEffect.play()
 
 
 class Coin(Block):
@@ -276,6 +281,41 @@ class GameManager:
         # Draws the upgrade buttons
         button_group.draw(screen)
 
+        # Draws the cost and level of the buttons
+        if speed_button.level != 10:
+            speed_button_lvl = button_font.render(str(speed_button.level), True, game_over_black)
+            speed_button_lvl_rect = speed_button_lvl.get_rect(center=(716, screen_height - 94))
+            screen.blit(speed_button_lvl, speed_button_lvl_rect)
+        else:
+            speed_button_lvl = button_font.render('MAX', True, game_over_black)
+            speed_button_lvl_rect = speed_button_lvl.get_rect(center=(716, screen_height - 94))
+            screen.blit(speed_button_lvl, speed_button_lvl_rect)
+
+        speed_button_cost = button_font.render(str(speed_button.cost), True, game_over_black)
+        speed_button_cost_rect = speed_button_cost.get_rect(center=(689, screen_height - 60))
+        screen.blit(speed_button_cost, speed_button_cost_rect)
+
+        if size_button.level != 10:
+            size_button_lvl = button_font.render(str(size_button.level), True, white)
+            size_button_lvl_rect = size_button_lvl.get_rect(center=(966, screen_height - 94))
+            screen.blit(size_button_lvl, size_button_lvl_rect)
+        else:
+            speed_button_lvl = button_font.render('MAX', True, game_over_black)
+            speed_button_lvl_rect = speed_button_lvl.get_rect(center=(966, screen_height - 94))
+            screen.blit(speed_button_lvl, speed_button_lvl_rect)
+
+        size_button_cost = button_font.render(str(size_button.cost), True, white)
+        size_button_cost_rect = size_button_cost.get_rect(center=(939, screen_height - 60))
+        screen.blit(size_button_cost, size_button_cost_rect)
+
+        command_speed = small_score_font.render('E', True, game_over_black)
+        command_speed_rect = command_speed.get_rect(center=(590, screen_height - 83))
+        screen.blit(command_speed, command_speed_rect)
+
+        command_size = small_score_font.render('R', True, game_over_black)
+        command_size_rect = command_size.get_rect(center=(840, screen_height - 83))
+        screen.blit(command_size, command_size_rect)
+
     def coin_generator(self):
         now = pygame.time.get_ticks()
         if now - self.last_spawn_time_coin > COIN_SPAWN_TIME:
@@ -293,9 +333,15 @@ class GameManager:
             self.coin_group.add(coin)
         for coin in self.coin_group:
             if coin.collided_with_player(player.rect):
-                # Insert sound effect
+                coin_soundEffect.play()
                 self.coins_collected += 1
                 coin.kill()
+
+    def decrease_cost_speed(self):
+        self.coins_collected -= speed_button.cost
+
+    def decrease_cost_size(self):
+        self.coins_collected -= size_button.cost
 
     def reset_ball(self):
         if self.ball_group.sprite.rect.right >= screen_width:
@@ -371,9 +417,13 @@ class GameManager:
         # Reset the Background counter for background movement and levelUp counter
         self.background_counter = 0
         self.levelUp_soundEffect_counter = 0
+
         self.last_spawn_time_coin = pygame.time.get_ticks()
 
         pygame.mixer.music.unload()
+        pygame.mixer.music.load('game_background_music.wav')
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(-1)
 
     def pause(self):
         game_restart_flag = False
@@ -514,6 +564,12 @@ class GameManager:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
                         pygame.mixer.music.stop()
+
+                        pygame.mixer.music.unload()
+                        pygame.mixer.music.load('game_background_music.wav')
+                        pygame.mixer.music.set_volume(0.5)
+                        pygame.mixer.music.play(-1)
+
                         main_menu = False
 
                     elif event.key == pygame.K_q:
@@ -554,8 +610,6 @@ class GameManager:
             # Stops the gameplay music
             pygame.mixer.music.stop()
 
-            # Insert here Game over music
-
             i = 0
             while i != 50:
                 spriteFade.update()
@@ -567,14 +621,13 @@ class GameManager:
             game_over = True
             game_restart = False
             main_menu_flag = False
-            # Insert here Game Over music
+            game_over_soundEffect.play()
 
             while game_over:
                 screen.fill(game_over_black)
 
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
-                        pygame.mixer.music.stop()
                         pygame.quit()
                         sys.exit()
 
@@ -584,7 +637,6 @@ class GameManager:
                             game_over = False
 
                         elif event.key == pygame.K_m:
-                            pygame.mixer.music.stop()
                             main_menu_flag = True
                             game_over = False
 
@@ -596,6 +648,15 @@ class GameManager:
                 game_over_text = big_main_menu_font.render('Game Over', True, light_grey)
                 game_over_text_rect = game_over_text.get_rect(center=(screen_width / 2, 400))
                 screen.blit(game_over_text, game_over_text_rect)
+
+                text = small_paused_font.render('Press R to restart, Q to quit ', True, light_grey)
+                text_rect = text.get_rect(center=(screen_width / 2, 600))
+                screen.blit(text, text_rect)
+
+                extra_text = small_paused_font.render('or M to go to the main menu ', True, light_grey)
+                extra_text_rect = extra_text.get_rect(center=(screen_width / 2, 650))
+                screen.blit(extra_text, extra_text_rect)
+
                 pygame.display.flip()
 
             if game_restart and not game_over:
@@ -617,11 +678,12 @@ clock = pygame.time.Clock()
 screen_width = 1280
 screen_height = 960
 screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption('Mega Pong')
+pygame.display.set_caption('Pong-The-Game')
 
 color_bg = pygame.Color('grey12')
 bg_img = pygame.image.load('game_background.jpg')
 light_grey = (200, 200, 200)
+white = (255, 255, 255)
 game_over_black = (0, 0, 0)
 COIN_SPAWN_TIME = 3000
 
@@ -630,11 +692,16 @@ winPoint_soundEffect = pygame.mixer.Sound('point_won_sound_effect.wav')
 losePoint_soundEffect = pygame.mixer.Sound('the_rock_sound_effect.wav')
 levelUp_soundEffect = pygame.mixer.Sound('level_up_sound_effect.wav')
 collision_ball_player_soundEffect = pygame.mixer.Sound('collision_sound_effect.wav')
+game_over_soundEffect = pygame.mixer.Sound('game_over_sound_effect.wav')
+coin_soundEffect = pygame.mixer.Sound('coin_sound_effect.wav')
+error_soundEffect = pygame.mixer.Sound('error_sound_effect.wav')
+upgrade_soundEffect = pygame.mixer.Sound('upgrade_level_up.wav')
 
 # The Rock Image
 theRockMeme = pygame.image.load('theRock.jpeg')
 
 # Fonts
+button_font = pygame.font.Font('PixeloidSans-JR6qo.ttf', 20)
 paused_font = pygame.font.Font('PixeloidSans-JR6qo.ttf', 80)
 small_paused_font = pygame.font.Font('PixeloidSans-JR6qo.ttf', 40)
 small_score_font = pygame.font.Font('PixeloidSans-JR6qo.ttf', 40)
@@ -657,7 +724,7 @@ ball_sprite.add(ball)
 
 button_group = pygame.sprite.Group()
 
-speed_button = UpgradeSpeed('BotaoSpeed.png', 700, screen_height - 112)
+speed_button = UpgradeSpeed('BotaoSpeed.png', 650, screen_height - 112)
 size_button = UpgradeSize('BotaoSize.png', 900, screen_height - 112)
 button_group.add(speed_button)
 button_group.add(size_button)
@@ -666,11 +733,6 @@ game_manager = GameManager(ball_sprite, paddle_group, coin_group, button_group)
 
 # First comes the main menu
 game_manager.main_menu()
-
-pygame.mixer.music.unload()
-pygame.mixer.music.load('game_background_music.wav')
-pygame.mixer.music.set_volume(0.5)
-pygame.mixer.music.play(-1)
 
 # Clock timer
 game_manager.start_time = pygame.time.get_ticks()
