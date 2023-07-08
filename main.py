@@ -57,6 +57,7 @@ class UpgradeSpeed(Button):
             GameManager.decrease_cost_speed(game_manager)
             self.level += 1
             player.speed += 1
+            paddle_group.update(ball_sprite)
             self.cost += 5
             upgrade_soundEffect.play()
         else:
@@ -67,14 +68,19 @@ class UpgradeSize(Button):
     def __init__(self, path, x_pos, y_pos):
         super().__init__(path, x_pos, y_pos)
         self.level = 1
-        self.cost = 5
+        self.cost = 10
         self.image = pygame.transform.scale(self.image, (131, 131))
 
     def upgrade_button(self):
         if game_manager.coins_collected >= self.cost and self.level != 10:
             GameManager.decrease_cost_size(game_manager)
             self.level += 1
-            player.rect.size += (0, 2)
+
+            current_width = player.rect.width
+            current_height = player.rect.height
+            player.rect = player.image.get_rect(center=player.rect.center)
+            player.image = pygame.transform.scale(player.image, (current_width, current_height + 10))
+
             self.cost += 5
             upgrade_soundEffect.play()
         else:
@@ -577,7 +583,7 @@ class GameManager:
                         pygame.quit()
                         quit()
 
-            main_menu_text = big_main_menu_font.render('MEGA PONG: The Game', True, light_grey)
+            main_menu_text = big_main_menu_font.render('Pong-The-Game', True, light_grey)
             main_menu_rect = main_menu_text.get_rect(center=(screen_width / 2, 120))
             screen.blit(main_menu_text, main_menu_rect)
 
@@ -592,6 +598,10 @@ class GameManager:
             controls_text = small_paused_font.render('Press SPACE to continue', True, light_grey)
             controls_rect = controls_text.get_rect(center=(screen_width / 2, screen_height / 2 + 410))
             screen.blit(controls_text, controls_rect)
+
+            screen.blit(ball_image, (screen_width/2 - 60, screen_height/2 + 20))
+            screen.blit(paddle_image, (screen_width/2 - 315, screen_height/2 - 50))
+            screen.blit(paddle_image, (screen_width/2 + 315, screen_height/2 - 50))
 
             pygame.display.flip()
 
@@ -682,6 +692,12 @@ pygame.display.set_caption('Pong-The-Game')
 
 color_bg = pygame.Color('grey12')
 bg_img = pygame.image.load('game_background.jpg')
+ball_image = pygame.image.load('Ball.png')
+paddle_image = pygame.image.load('Paddle.png')
+
+ball_image = pygame.transform.scale(ball_image, (120, 120))
+paddle_image = pygame.transform.scale(paddle_image, (20, 280))
+
 light_grey = (200, 200, 200)
 white = (255, 255, 255)
 game_over_black = (0, 0, 0)
