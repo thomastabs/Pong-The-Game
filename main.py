@@ -1,8 +1,9 @@
 # The beginning of a side project: my first game - PONG with the help of pygame and
 # https://www.youtube.com/watch?v=Qf3-aDXG8q4&t=16s
 
-# TO DO: upgrade system with coins and economy, multiplayer mode and update the level up sounds since they are outdated
+# TO DO: multiplayer mode
 
+import os
 import pygame
 import sys
 import random
@@ -325,7 +326,7 @@ class GameManager:
     def coin_generator(self):
         now = pygame.time.get_ticks()
         if now - self.last_spawn_time_coin > COIN_SPAWN_TIME:
-            coin = Coin('Coin.png', 0, random.randint(10, screen_height - 180), 2)
+            coin = Coin('images/Coin.png', 0, random.randint(10, screen_height - 180), 2)
             self.last_spawn_time_coin = now
             return coin
         else:
@@ -427,7 +428,7 @@ class GameManager:
         self.last_spawn_time_coin = pygame.time.get_ticks()
 
         pygame.mixer.music.unload()
-        pygame.mixer.music.load('game_background_music.wav')
+        pygame.mixer.music.load('music/game_background_music.wav')
         pygame.mixer.music.set_volume(0.5)
         pygame.mixer.music.play(-1)
 
@@ -557,7 +558,7 @@ class GameManager:
         main_menu = True
 
         pygame.mixer.music.load(
-            'main_menu_music.wav')
+            'music/main_menu_music.wav')
         pygame.mixer.music.play(-1)
         screen.blit(bg_img, (0, 0))
         while main_menu:
@@ -572,7 +573,7 @@ class GameManager:
                         pygame.mixer.music.stop()
 
                         pygame.mixer.music.unload()
-                        pygame.mixer.music.load('game_background_music.wav')
+                        pygame.mixer.music.load('music/game_background_music.wav')
                         pygame.mixer.music.set_volume(0.5)
                         pygame.mixer.music.play(-1)
 
@@ -679,6 +680,9 @@ class GameManager:
                 self.main_menu()
 
 
+if getattr(sys, 'frozen', False):
+    os.chdir(sys._MEIPASS)
+
 # General Setup for the window
 pygame.mixer.pre_init(44100, -16, 2, 256)
 pygame.init()
@@ -691,9 +695,9 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Pong-The-Game')
 
 color_bg = pygame.Color('grey12')
-bg_img = pygame.image.load('game_background.jpg')
-ball_image = pygame.image.load('Ball.png')
-paddle_image = pygame.image.load('Paddle.png')
+bg_img = pygame.image.load('images/game_background.jpg')
+ball_image = pygame.image.load('images/Ball.png')
+paddle_image = pygame.image.load('images/Paddle.png')
 
 ball_image = pygame.transform.scale(ball_image, (120, 120))
 paddle_image = pygame.transform.scale(paddle_image, (20, 280))
@@ -704,44 +708,44 @@ game_over_black = (0, 0, 0)
 COIN_SPAWN_TIME = 3000
 
 # Sound effects
-winPoint_soundEffect = pygame.mixer.Sound('point_won_sound_effect.wav')
-losePoint_soundEffect = pygame.mixer.Sound('the_rock_sound_effect.wav')
-levelUp_soundEffect = pygame.mixer.Sound('level_up_sound_effect.wav')
-collision_ball_player_soundEffect = pygame.mixer.Sound('collision_sound_effect.wav')
-game_over_soundEffect = pygame.mixer.Sound('game_over_sound_effect.wav')
-coin_soundEffect = pygame.mixer.Sound('coin_sound_effect.wav')
-error_soundEffect = pygame.mixer.Sound('error_sound_effect.wav')
-upgrade_soundEffect = pygame.mixer.Sound('upgrade_level_up.wav')
+winPoint_soundEffect = pygame.mixer.Sound('sfx/point_won_sound_effect.wav')
+losePoint_soundEffect = pygame.mixer.Sound('sfx/the_rock_sound_effect.wav')
+levelUp_soundEffect = pygame.mixer.Sound('sfx/level_up_sound_effect.wav')
+collision_ball_player_soundEffect = pygame.mixer.Sound('sfx/collision_sound_effect.wav')
+game_over_soundEffect = pygame.mixer.Sound('sfx/game_over_sound_effect.wav')
+coin_soundEffect = pygame.mixer.Sound('sfx/coin_sound_effect.wav')
+error_soundEffect = pygame.mixer.Sound('sfx/error_sound_effect.wav')
+upgrade_soundEffect = pygame.mixer.Sound('sfx/upgrade_level_up.wav')
 
 # The Rock Image
-theRockMeme = pygame.image.load('theRock.jpeg')
+theRockMeme = pygame.image.load('images/theRock.jpeg')
 
 # Fonts
-button_font = pygame.font.Font('PixeloidSans-JR6qo.ttf', 20)
-paused_font = pygame.font.Font('PixeloidSans-JR6qo.ttf', 80)
-small_paused_font = pygame.font.Font('PixeloidSans-JR6qo.ttf', 40)
-small_score_font = pygame.font.Font('PixeloidSans-JR6qo.ttf', 40)
-big_main_menu_font = pygame.font.Font('PixeloidSans-JR6qo.ttf', 100)
+button_font = pygame.font.Font('images/PixeloidSans-JR6qo.ttf', 20)
+paused_font = pygame.font.Font('images/PixeloidSans-JR6qo.ttf', 80)
+small_paused_font = pygame.font.Font('images/PixeloidSans-JR6qo.ttf', 40)
+small_score_font = pygame.font.Font('images/PixeloidSans-JR6qo.ttf', 40)
+big_main_menu_font = pygame.font.Font('images/PixeloidSans-JR6qo.ttf', 100)
 
 # Game Objects
 coin_group = pygame.sprite.Group()
 
-player = Player('Paddle.png', screen_width - 20, ((screen_height - 160) / 2), 5)
-opponent = Opponent('Paddle.png', 20, ((screen_height - 160) / 2), 5)
+player = Player('images/Paddle.png', screen_width - 20, ((screen_height - 160) / 2), 5)
+opponent = Opponent('images/Paddle.png', 20, ((screen_height - 160) / 2), 5)
 paddle_group = pygame.sprite.Group()
 paddle_group.add(player)
 paddle_group.add(opponent)
 
 spriteFade = pygame.sprite.Group(FadeInBlack())
 
-ball = Ball('Ball.png', screen_width / 2, (screen_height - 160) / 2, 3, 3, paddle_group)
+ball = Ball('images/Ball.png', screen_width / 2, (screen_height - 160) / 2, 3, 3, paddle_group)
 ball_sprite = pygame.sprite.GroupSingle()
 ball_sprite.add(ball)
 
 button_group = pygame.sprite.Group()
 
-speed_button = UpgradeSpeed('BotaoSpeed.png', 650, screen_height - 112)
-size_button = UpgradeSize('BotaoSize.png', 900, screen_height - 112)
+speed_button = UpgradeSpeed('images/BotaoSpeed.png', 650, screen_height - 112)
+size_button = UpgradeSize('images/BotaoSize.png', 900, screen_height - 112)
 button_group.add(speed_button)
 button_group.add(size_button)
 
